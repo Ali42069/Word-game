@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Word game</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      transition: background-color 0.5s, color 0.5s;
+    }
+
+    #game-board {
+      display: grid;
+      grid-template-columns: repeat(5, 50px);
+      grid-gap: 5px;
+      margin-bottom: 20px;
+    }
+
+    .letter-box {
+      border: 2px solid #333;
+      font-size: 2rem;
+      font-weight: bold;
+      height: 50px;
+      width: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: background-color 0.5s, color 0.5s, border-color 0.5s;
+    }
+
+    .correct {
+      background-color: #2ecc71;
+      color: #f0f0f0;
+    }
+
+    .present {
+      background-color: #f1c40f;
+      color: #f0f0f0;
+    }
+
+    .absent {
+      background-color: #7f8c8d;
+      color: #f0f0f0;
+    }
+
+    #new-game-btn,
+    #theme-btn,
+    #hint-btn {
+      background-color: #2980b9;
+      color: #f0f0f0;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      cursor: pointer;
+      margin-left: 10px;
+      transition: background-color 0.5s;
+    }
+
+    #new-game-btn:hover,
+    #theme-btn:hover,
+    #hint-btn:hover {
+      background-color: #3498db;
+    }
+  </style>
+</head>
+<body>
+  <h1>Word game</h1>
+  <div id="game-board"></div>
+  <div>
+    <button id="new-game-btn">New Game</button>
+    <button id="theme-btn">Toggle Theme</button>
+    <button id="hint-btn">Hint</button>
+  </div>
+
+  <script>
+    const words = ['APPLE', 'FOCUS', 'MOVIE', 'POWER', 'ARISE'];
+    let currentRow = 0;
+    let currentCol = 0;
+    let targetWord = words[Math.floor(Math.random() * words.length)];
+    let isDarkMode = true;
+
+    function createLetterBox() {
+      const letterBox = document.createElement('div');
+      letterBox.classList.add('letter-box');
+      return letterBox;
+    }
+
+    function updateGameBoard() {
+      const gameBoard = document.getElementById('game-board');
+      gameBoard.innerHTML = '';
+
+      for (let row = 0; row < 6; row++) {
+        for (let col = 0; col < 5; col++) {
+          const letterBox = createLetterBox();
+          gameBoard.appendChild(letterBox);
+        }
+      }
+    }
+
+    function handleKeydown(event) {
+      if (event.key >= 'a' && event.key <= 'z') {
+        handleLetterInput(event.key.toUpperCase());
+      } else if (event.key === 'Backspace') {
+        handleBackspace();
+      } else if (event.key === 'Enter') {
+        handleEnter();
+      }
+    }
+
+    function handleLetterInput(letter) {
+      if (currentCol < 5) {
+        const letterBoxes = document.querySelectorAll('.letter-box');
+        letterBoxes[currentRow * 5 + currentCol].textContent = letter;
+        currentCol++;
+      }
+    }
+
+    function handleBackspace() {
+      if (currentCol > 0) {
+        currentCol--;
+        const letterBoxes = document.querySelectorAll('.letter-box');
+        letterBoxes[currentRow * 5 + currentCol].textContent = '';
+      }
+    }
+
+    function handleEnter() {
+      if (currentCol === 5) {
+        const guess = getGuessWord();
+        evaluateGuess(guess);
+        currentRow++;
+        currentCol = 0;
+
+        if (guess === targetWord) {
+          alert('You win!');
+        } else if (currentRow === 6) {
+          alert(`You lose. The word was ${targetWord}.`);
+        }
+      }
+    }
+
+    function getGuessWord() {
+      const letterBoxes = document.querySelectorAll('.letter-box');
+      let word = '';
+      for (let i = currentRow * 5; i < (currentRow * 5) + 5; i++) {
+        word += letterBoxes[i].textContent;
+      }
+      return word;
+    }
+
+    function evaluateGuess(guess) {
+      const letterBoxes = document.querySelectorAll('.letter-box');
+      const guessArray = guess.split('');
+      const targetArray = targetWord.split('');
+
+      for (let i = 0; i < 5; i++) {
+        if (guessArray[i] === targetArray[i]) {
+          letterBoxes[currentRow * 5 + i].classList.add('correct');
+        } else if (targetWord.includes(guessArray[i])) {
+          letterBoxes[currentRow * 5 + i].classList.add('present');
+        } else {
+          letterBoxes[currentRow * 5 + i].classList.add('absent');
+        }
+      }
+    }
+
+    function startNewGame() {
+      currentRow = 0;
+      currentCol = 0;
+      targetWord = words[Math.floor(Math.random() * words.length)];
+      updateGameBoard();
+    }
+
+    function toggleTheme() {
+      const body = document.body;
+      const letterBoxes = document.querySelectorAll('.letter-box');
+      const buttons = document.querySelectorAll('button');
+
+      if (isDarkMode) {
+        body.style.backgroundColor = '#ffffff';
+        body.style.color = '#000000';
+
+        letterBoxes.forEach((box) => {
+          box.style.border = '2px solid #333';
+          box.classList.remove('correct', 'present', 'absent');
+        });
+
+        buttons.forEach((button) => {
+          button.style.backgroundColor = '#2980b9';
+          button.style.color = '#ffffff';
+        });
+      } else {
+        body.style.backgroundColor = '#1a1a1a';
+        body.style.color = '#f0f0f0';
+
+        letterBoxes.forEach((box) => {
+          box.style.border = '2px solid #333';
+          box.classList.remove('correct', 'present', 'absent');
+        });
+
+        buttons.forEach((button) => {
+          button.style.backgroundColor = '#2980b9';
+          button.style.color = '#f0f0f0';
+        });
+      }
+
+      isDarkMode = !isDarkMode;
+    }
+
+    function showHint() {
+      const targetWordArray = targetWord.split('');
+      let hintLetter = '';
+
+      for (let i = 0; i < 5; i++) {
+        if (getGuessWord()[i] !== targetWordArray[i]) {
+          hintLetter = targetWordArray[i];
+          break;
+        }
+      }
+
+      if (hintLetter === '') {
+        alert('You have already guessed all the correct letters!');
+      } else {
+        alert(`The hint is: The word contains the letter "${hintLetter}".`);
+      }
+    }
+
+    document.addEventListener('keydown', handleKeydown);
+    document.getElementById('new-game-btn').addEventListener('click', startNewGame);
+    document.getElementById('theme-btn').addEventListener('click', toggleTheme);
+    document.getElementById('hint-btn').addEventListener('click', showHint);
+
+    updateGameBoard();
+  </script>
+</body>
+</html>
